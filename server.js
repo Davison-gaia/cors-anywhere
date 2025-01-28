@@ -34,16 +34,20 @@ cors_proxy.createServer({
     'via',
     'connect-time',
     'total-route-time',
-    // Other Heroku added debug headers
-    // 'x-forwarded-for',
-    // 'x-forwarded-proto',
-    // 'x-forwarded-port',
   ],
   redirectSameOrigin: true,
   httpProxyOptions: {
-    // Do not add X-Forwarded-For, etc. headers, because Heroku already adds it.
     xfwd: false,
   },
-}).listen(port, host, function() {
+  onProxyReq: (proxyReq, req, res) => {
+    // Adiciona os headers obrigatórios na requisição
+    if (!req.headers['origin']) {
+      proxyReq.setHeader('origin', 'http://localhost:55968'); // Adicione o valor do origin desejado
+    }
+    if (!req.headers['x-requested-with']) {
+      proxyReq.setHeader('x-requested-with', 'XMLHttpRequest');
+    }
+  },
+}).listen(port, host, function () {
   console.log('Running CORS Anywhere on ' + host + ':' + port);
 });
